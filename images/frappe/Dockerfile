@@ -8,14 +8,15 @@ ARG APPS_JSON_BASE64
 
 USER root
 
-RUN if [ -n "${APPS_JSON_BASE64}" ]; then \
-    mkdir /opt/frappe && echo "${APPS_JSON_BASE64}" | base64 -d > /opt/frappe/apps.json; \
-  fi
+# If you do not want to to install ERPNext, remove the object
+#   but keep the file `app.json` as an empty list.
+# i.e. `[]`
+COPY ./apps.json /opt/frappe/apps.json
 
 USER frappe
 
 RUN export APP_INSTALL_ARGS="" && \
-  if [ -n "${APPS_JSON_BASE64}" ]; then \
+  if [ -f "/opt/frappe/apps.json" ]; then \
     export APP_INSTALL_ARGS="--apps_path=/opt/frappe/apps.json"; \
   fi && \
   bench init ${APP_INSTALL_ARGS}\
