@@ -1,0 +1,34 @@
+# .github/workflows/deploy.yml
+name: Deploy to DigitalOcean App Platform
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Deploy app
+        run: |
+          # Check if the app exists
+          APP_ID=$(doctl apps list --no-header --format ID,Spec.Name | grep "do-frappe" | awk '{print $1}')
+          
+          if [ -z "$APP_ID" ]; then
+            # App doesn't exist, create it
+            echo "Creating new app 'do-frappe'..."
+            doctl apps create --spec .do/app.yaml
+          else
+            # App exists, update it
+            echo "Updating existing app 'do-frappe' (ID: $APP_ID)..."
+            doctl apps update $APP_ID --spec .do/app.yaml
+          fi
