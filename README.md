@@ -10,7 +10,7 @@
 
 # Deploy
 
-- Fork [do-frappe](https://github.com/aldo-o/do-frappe)
+- Fork and use as template [do-frappe](https://github.com/aldo-o/do-frappe)
 - Update `repo` value on `.do/app.yaml` to be your Github username
 - Link your Github Account with App Platform. (IMPORTANT)
 - Generate a DigitalOcean token with scopes `update`, `read`, `create` under `app` (or give full permissions)
