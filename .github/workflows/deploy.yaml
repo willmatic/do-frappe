@@ -2,9 +2,9 @@
 name: Deploy to DigitalOcean App Platform
 
 on:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
   workflow_dispatch:
 
 jobs:

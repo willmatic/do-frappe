@@ -1,5 +1,5 @@
 # do-frappe
-1-Click Frappe Framework deployment on DigitalOcean App Platform
+1-Click Frappe Framework deployment on DigitalOcean ( @digitalocean ) App Platform
 
 [Detailed blog post](https://dev.to/aldo/1-click-frappe-framework-deployment-on-digitalocean-app-platform-2lbb)
 
@@ -11,8 +11,8 @@
 # Deploy
 
 - Fork [do-frappe](https://github.com/aldo-o/do-frappe)
-- Generate a DigitalOcean token with scopes `update`, `read`, `create` under `app` (or give full permissions)
 - Link your Github Account with App Platform. (IMPORTANT)
+- Generate a DigitalOcean token with scopes `update`, `read`, `create` under `app` (or give full permissions)
 - Update `repo` value on `.do/app.yaml` to be your Github username
 - Add this token as a secret in your forked repo named `DIGITALOCEAN_ACCESS_TOKEN`
 - Trigger the CI/CD pipeline
