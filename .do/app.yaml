@@ -41,10 +41,6 @@ services:
   - name: redis-cache
     dockerfile_path: images/redis/Dockerfile
     source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: aldo-o/do-frappe
     internal_ports:
       - 6379
     instance_size_slug: basic-s
@@ -52,10 +48,6 @@ services:
   - name: redis-queue
     dockerfile_path: images/redis/Dockerfile
     source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: aldo-o/do-frappe
     internal_ports:
       - 6379
     instance_size_slug: basic-s
@@ -63,10 +55,6 @@ services:
   - name: redis-socketio
     dockerfile_path: images/redis/Dockerfile
     source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: aldo-o/do-frappe
     internal_ports:
       - 6379
     instance_size_slug: basic-s
@@ -74,20 +62,12 @@ services:
   - name: mariadb
     dockerfile_path: images/mariadb/Dockerfile
     source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: aldo-o/do-frappe
     internal_ports:
       - 3306
     instance_size_slug: basic-s
     instance_count: 1
   - dockerfile_path: Dockerfile
     name: frappe
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: aldo-o/do-frappe
     http_port: 8080
     internal_ports:
       - 8888
