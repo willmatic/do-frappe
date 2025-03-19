@@ -1,5 +1,5 @@
 # do-frappe
-1-Click Frappe Framework deployment on DigitalOcean ( @digitalocean ) App Platform
+1-Click Frappe Framework deployment on DigitalOcean App Platform
 
 [Detailed blog post](https://dev.to/aldo/1-click-frappe-framework-deployment-on-digitalocean-app-platform-2lbb)
 
