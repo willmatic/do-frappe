@@ -82,8 +82,9 @@ services:
       - 3306
     instance_size_slug: basic-s
     instance_count: 1
-  - dockerfile_path: images/frappe/Dockerfile
-    name: frappe
+  - name: frappe
+    dockerfile_path: images/frappe/Dockerfile
+    source_dir: .
     github:
       branch: main
       deploy_on_push: true
