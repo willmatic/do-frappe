@@ -1,9 +1,23 @@
 name: do-frappe
-region: nyc
-alerts:
-  - rule: DEPLOYMENT_FAILED
-  - rule: DOMAIN_FAILED
-envs:
+services:
+- name: frappe
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: willmatic/do-frappe
+  dockerfile_path: images/frappe/Dockerfile
+  http_port: 8000
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  internal_ports:
+  - 8000
+  - 8080
+  - 8888
+  - 9000
+  routes:
+  - path: /
+  envs:
   - key: REDIS_CACHE
     scope: RUN_AND_BUILD_TIME
     value: "redis://redis-cache:6379"
@@ -13,93 +27,61 @@ envs:
   - key: REDIS_SOCKETIO
     scope: RUN_AND_BUILD_TIME
     value: "redis://redis-socketio:6379"
-  - key: BACKEND
+  - key: DB_HOST
     scope: RUN_AND_BUILD_TIME
-    value: "0.0.0.0:8000"
-  - key: CLIENT_MAX_BODY_SIZE
+    value: "mariadb"
+  - key: DB_PORT
     scope: RUN_AND_BUILD_TIME
-    value: "50m"
-  - key: FRAPPE_SITE_NAME_HEADER
+    value: "3306"
+
+- name: mariadb
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: willmatic/do-frappe
+  dockerfile_path: images/mariadb/Dockerfile
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  internal_ports:
+  - 3306
+  envs:
+  - key: MARIADB_ROOT_PASSWORD
     scope: RUN_AND_BUILD_TIME
-    value: "$host"
-  - key: UPSTREAM_REAL_IP_ADDRESS
-    scope: RUN_AND_BUILD_TIME
-    value: "127.0.0.1"
-  - key: UPSTREAM_REAL_IP_HEADER
-    scope: RUN_AND_BUILD_TIME
-    value: "X-Forwarded-For"
-  - key: UPSTREAM_REAL_IP_RECURSIVE
-    scope: RUN_AND_BUILD_TIME
-    value: "off"
-  - key: PROXY_READ_TIMEOUT
-    scope: RUN_AND_BUILD_TIME
-    value: "120"
-  - key: SOCKETIO
-    scope: RUN_AND_BUILD_TIME
-    value: "0.0.0.0:9000"
-services:
-  - name: redis-cache
-    dockerfile_path: images/redis/Dockerfile
-    source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: willmatic/do-frappe
-    internal_ports:
-      - 6379
-    instance_size_slug: basic-s
-    instance_count: 1
-  - name: redis-queue
-    dockerfile_path: images/redis/Dockerfile
-    source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: willmatic/do-frappe
-    internal_ports:
-      - 6379
-    instance_size_slug: basic-s
-    instance_count: 1
-  - name: redis-socketio
-    dockerfile_path: images/redis/Dockerfile
-    source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: willmatic/do-frappe
-    internal_ports:
-      - 6379
-    instance_size_slug: basic-s
-    instance_count: 1
-  - name: mariadb
-    dockerfile_path: images/mariadb/Dockerfile
-    source_dir: .
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: willmatic/do-frappe
-    internal_ports:
-      - 3306
-    instance_size_slug: basic-s
-    instance_count: 1
-  - dockerfile_path: Dockerfile
-    name: frappe
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: willmatic/do-frappe
-    http_port: 8080
-    internal_ports:
-      - 8888
-      - 9000
-      - 8000
-    health_check:
-      initial_delay_seconds: 10
-      period_seconds: 10
-      timeout_seconds: 5
-      success_threshold: 1
-      failure_threshold: 5
-      http_path: /health
-      port: 8080
-    instance_size_slug: basic-m
-    instance_count: 1
+    value: "pEBMMlB1s2H6oBQE07Bw4phoQhnlqSGa"
+
+- name: redis-cache
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: willmatic/do-frappe
+  dockerfile_path: images/redis/Dockerfile
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  internal_ports:
+  - 6379
+
+- name: redis-queue
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: willmatic/do-frappe
+  dockerfile_path: images/redis/Dockerfile
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  internal_ports:
+  - 6379
+
+- name: redis-socketio
+  source_dir: .
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: willmatic/do-frappe
+  dockerfile_path: images/redis/Dockerfile
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  internal_ports:
+  - 6379
