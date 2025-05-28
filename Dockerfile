@@ -22,7 +22,7 @@ RUN export APP_INSTALL_ARGS="" && \
     --verbose \
     /home/frappe/frappe-bench && \
   cd /home/frappe/frappe-bench && \
-  echo '{"redis_cache":"redis://redis-cache:6379","redis_queue":"redis://redis-queue:6379","redis_socketio":"redis://redis-socketio:6379","background_workers":1,"file_watcher_port":6787,"frappe_user":"frappe","gunicorn_workers":4,"restart_supervisor_on_update":true,"restart_systemd_on_update":false,"serve_default_site":true,"shallow_clone":true,"socketio_port":9000,"use_redis_auth":false}' > sites/common_site_config.json && \
+  echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
 FROM frappe/base:${FRAPPE_BRANCH} AS backend
@@ -54,10 +54,48 @@ RUN curl -L https://github.com/IBM-Cloud/redli/releases/download/v0.15.0/redli_0
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Set Redis environment variables for Node.js processes
-ENV REDIS_CACHE="redis://redis-cache:6379"
-ENV REDIS_QUEUE="redis://redis-queue:6379" 
-ENV REDIS_SOCKETIO="redis://redis-socketio:6379"
+# Set Redis environment variables
+ENV REDIS_CACHE="redis-cache:6379"
+ENV REDIS_QUEUE="redis-queue:6379" 
+ENV REDIS_SOCKETIO="redis-socketio:6379"
+
+# Create a Redis configuration script using bench set-config (the proper Frappe way)
+RUN cat > /home/frappe/configure-redis.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Configuring Redis connections using bench set-config..."
+
+cd /home/frappe/frappe-bench
+
+# Configure Redis using the proper Frappe bench commands
+bench set-config -g redis_cache "redis://${REDIS_CACHE}"
+bench set-config -g redis_queue "redis://${REDIS_QUEUE}"
+bench set-config -g redis_socketio "redis://${REDIS_SOCKETIO}"
+
+echo "Redis configuration completed successfully!"
+echo "Current Redis configuration:"
+bench get-config redis_cache redis_queue redis_socketio
+EOF
+
+RUN chmod +x /home/frappe/configure-redis.sh && \
+    chown frappe:frappe /home/frappe/configure-redis.sh
+
+# Create a new entrypoint that configures Redis before starting services
+RUN cat > /usr/local/bin/frappe-entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Starting Frappe with Redis configuration..."
+
+# Switch to frappe user and configure Redis
+su - frappe -c "/home/frappe/configure-redis.sh"
+
+# Then run the original nginx entrypoint
+exec /usr/local/bin/nginx-entrypoint.sh "$@"
+EOF
+
+RUN chmod +x /usr/local/bin/frappe-entrypoint.sh
 
 EXPOSE 8000 8080 8888 9000
-ENTRYPOINT ["nginx-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/frappe-entrypoint.sh"]
