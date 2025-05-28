@@ -1,20 +1,14 @@
 ARG FRAPPE_BRANCH=version-15
-
 FROM frappe/build:${FRAPPE_BRANCH} AS builder
-
 ARG FRAPPE_BRANCH=version-15
 ARG FRAPPE_PATH=https://github.com/frappe/frappe
 ARG APPS_JSON_BASE64
-
 USER root
-
 # If you do not want to to install ERPNext, remove the object
 #   but keep the file `app.json` as an empty list.
 # i.e. `[]`
 COPY ./apps.json /opt/frappe/apps.json
-
 USER frappe
-
 RUN export APP_INSTALL_ARGS="" && \
   if [ -f "/opt/frappe/apps.json" ]; then \
     export APP_INSTALL_ARGS="--apps_path=/opt/frappe/apps.json"; \
@@ -28,17 +22,13 @@ RUN export APP_INSTALL_ARGS="" && \
     --verbose \
     /home/frappe/frappe-bench && \
   cd /home/frappe/frappe-bench && \
-  echo "{}" > sites/common_site_config.json && \
+  echo '{"redis_cache":"redis://redis-cache:6379","redis_queue":"redis://redis-queue:6379","redis_socketio":"redis://redis-socketio:6379","background_workers":1,"file_watcher_port":6787,"frappe_user":"frappe","gunicorn_workers":4,"restart_supervisor_on_update":true,"restart_systemd_on_update":false,"serve_default_site":true,"shallow_clone":true,"socketio_port":9000,"use_redis_auth":false}' > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
 FROM frappe/base:${FRAPPE_BRANCH} AS backend
-
 USER frappe
-
 COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench
-
 WORKDIR /home/frappe/frappe-bench
-
 VOLUME [ \
   "/home/frappe/frappe-bench/sites", \
   "/home/frappe/frappe-bench/sites/assets", \
@@ -46,11 +36,9 @@ VOLUME [ \
 ]
 
 USER root
-
 COPY ./config/nginx-template.conf /templates/nginx/frappe.conf.template
 COPY ./config/nginx-entrypoint.sh /usr/local/bin/nginx-entrypoint.sh
 COPY ./config/supervisor.conf /etc/supervisor/conf.d/frappe.conf
-
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     sudo \
@@ -66,6 +54,10 @@ RUN curl -L https://github.com/IBM-Cloud/redli/releases/download/v0.15.0/redli_0
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 8000 8080 8888 9000
+# Set Redis environment variables for Node.js processes
+ENV REDIS_CACHE="redis://redis-cache:6379"
+ENV REDIS_QUEUE="redis://redis-queue:6379" 
+ENV REDIS_SOCKETIO="redis://redis-socketio:6379"
 
+EXPOSE 8000 8080 8888 9000
 ENTRYPOINT ["nginx-entrypoint.sh"]
